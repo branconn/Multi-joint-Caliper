@@ -197,7 +197,7 @@ p_bounds = 0
 for k in range(180):
 
     if sw():
-        pyb.delay(250)
+        pyb.delay(100)
         if sw():
             print('USR triggered!')
             calibrate()
@@ -208,30 +208,3 @@ for k in range(180):
     print('distance: ', distance)
 
 
-
-
-
-
-
-
- 
-
-#servo = machine.PWM(machine.Pin("X1"), freq=50)
-#servo.duty(77)
-
-##led = pyb.LED(3)
-##servo1 = pyb.Servo(1)
-##accel = pyb.Accel()
-##angle = 45
-##sing = "test"
-##
-##servo1.angle(angle)
-##pyb.delay(1000)
-##servo1.angle(-1*angle)
-##pyb.delay(1000)
-##
-##for i in range (1000):
-##    print (angle)
-##    angle = (accel.x())*(-120/30)
-##    print (angle)
-##    servo1.angle(angle)
