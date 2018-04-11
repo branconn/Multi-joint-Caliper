@@ -3,13 +3,14 @@
 import time
 import machine
 from machine import Pin, I2C, UART
-##import ssd1306
+import ssd1306
 from pyb import LED
 from pyb import Pin
 from pyb import Timer
 from pyb import ADC
 import math as m
 import ujson
+
 
 # print ("ready for code")
 #  pyb.LED(1)
@@ -58,6 +59,13 @@ def calibrate():
 
     f = open('bounds_file.txt', 'w')
     trig = False
+
+    oled.fill(0)
+    oled.text('turn all joints',0,10)
+    oled.text('to lower bound',0,20)
+    oled.text('and press USR', 0, 30)
+    oled.show()
+
     pyb.delay(1000)
     while not trig:  # waiting for USR input
         if sw():
@@ -66,9 +74,23 @@ def calibrate():
                 trig = True
 
     p_lo = collect()
+
     print('lower bound collected!')
+    oled.text('lower bound', 10, 46)
+    oled.text('collected!', 10, 56)
+    oled.show()
+
     trig = False
     pyb.delay(500)
+
+    oled.fill(0)
+    oled.text('turn all joints', 0, 10)
+    oled.text('to upper bound',0, 20)
+    oled.text('and press USR', 0, 30)
+    oled.text('lower bound', 10, 46)
+    oled.text('collected!', 10, 56)
+    oled.show()
+
     while not trig:  # waiting for USR input
         if sw():
             pyb.delay(100)
@@ -76,16 +98,27 @@ def calibrate():
                 trig = True
 
     p_hi = collect()
+
     print('upper bound collected!')
+    oled.fill(0)
+    oled.text('upper bound', 10, 46)
+    oled.text('collected!', 10, 56)
+    oled.show()
 
     p_list = p_lo + p_hi
     a = ujson.dumps(p_list)
     f.write(a)
     print('wrote')
-    pyb.delay(3000)
+    pyb.delay(1000)
+
+    oled.fill(0)
+    oled.text('thanks homie', 28, 50)
+    oled.show()
+
     f.close()
     print('closed')
-    pyb.delay(3000)
+    pyb.delay(1000)
+
 
     return p_lo, p_hi
 
@@ -108,9 +141,27 @@ def convert(p_val, p_list, change_bool):
             f.write(usub)
             pyb.delay(3000)
             f.close()
+
+
             print('bounds reset, need to recalibrate')
+            oled.fill(0)
+            oled.text('bounds have',0,0)
+            oled.text('been reset', 0, 10)
+            oled.text('to default',0,20)
+            oled.text('----------',0,30)
+            oled.show()
+            time.sleep(1)
+            oled.text('recalibrate',0,40)
+            oled.text('when possible', 0, 50)
+            oled.show()
+            time.sleep(2)
+            oled.fill(0)
+            oled.show()
+
+
             f = open('bounds_file.txt', 'r')
             a = f.read()
+
         print(a)
         p_list = ujson.loads(a)
         p_lo = p_list[0:6]
@@ -187,6 +238,19 @@ def calculate(rad):
 
     return pdist
 
+def convey(pdist):
+    i2c = I2C(Pin('X9'), Pin('X10'))
+    oled = ssd1306.SSD1306_I2C(128, 64, i2c)
+    oled.fill(1)
+    oled.show()
+    pyb.delay(1000)
+    oled.fill(0)
+    oled.show()
+
+
+
+
+
 
 ########### main code goes below ############
 
@@ -194,17 +258,47 @@ sw = pyb.Switch()
 change = True
 p_bounds = 0
 
-for k in range(180):
+i2c = I2C(scl = Pin('X9'), sda = Pin('X10'))
+
+oled = ssd1306.SSD1306_I2C(128, 64, i2c)
+
+oled.fill(1)
+oled.show()
+time.sleep(1)
+oled.fill(0)
+oled.show()
+time.sleep(1)
+oled.text('PENIS',64,50)
+oled.show()
+time.sleep(0.5)
+oled.fill(0)
+oled.show()
+
+for k in range(40):
 
     if sw():
-        pyb.delay(100)
+        pyb.delay(250)
         if sw():
             print('USR triggered!')
+            oled.fill(0)
+            oled.text('calibration triggered',0,0)
             calibrate()
             change = True
     pot_vals = collect()
     degrees, radians, p_bounds, change = convert(pot_vals, p_bounds, change)
     distance = calculate(radians)
+    pdistance = str(distance) + ' cm'
+    oled.fill(0)
+    # oled.show()
+    oled.text(pdistance,32,32)
+    oled.show()
     print('distance: ', distance)
+
+oled.fill(0)
+oled.show()
+
+
+
+
 
 
